@@ -28,6 +28,7 @@ module SEPA
           builder.NbOfTxs(transactions.length)
           builder.CtrlSum('%.2f' % amount_total(transactions))
           builder.PmtTpInf do
+            builder.InstrPrty('NORM')
             if group[:service_level]
               builder.SvcLvl do
                 builder.Cd(group[:service_level])
@@ -42,11 +43,25 @@ module SEPA
           builder.ReqdExctnDt(group[:requested_date].iso8601)
           builder.Dbtr do
             builder.Nm(account.name)
+            builder.PstlAdr do
+              builder.Ctry(account.country_code)
+            end
+            builder.Id do
+              builder.OrgId do
+                builder.Othr do
+                  builder.Id(account.creditor_identifier)
+                  builder.SchmeNm do
+                    builder.Cd('BANK')
+                  end
+                end
+              end
+            end
           end
           builder.DbtrAcct do
             builder.Id do
               builder.IBAN(account.iban)
             end
+            builder.Ccy(account.currency)
           end
           builder.DbtrAgt do
             builder.FinInstnId do
@@ -60,7 +75,7 @@ module SEPA
             end
           end
           if group[:service_level]
-            builder.ChrgBr('SLEV')
+            builder.ChrgBr('SHAR')
           end
 
           transactions.each do |transaction|
